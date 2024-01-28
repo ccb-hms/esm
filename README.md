@@ -5,9 +5,7 @@
 
 |
 
-===
-Evolutionary Scale Modeling
-===
+# Evolutionary Scale Modeling
 
 
     Transformer protein language models
