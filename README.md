@@ -12,7 +12,6 @@ computing platform O2 for inference on trained ESM-2 models.
 
 
 
-.. _pyscaffold-notes:
 
 Note
 ====
