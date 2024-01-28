@@ -30,14 +30,18 @@
 |
 
 ===
-esm
+Evolutionary Scale Modeling
 ===
 
 
     Transformer protein language models
 
 
-A longer description of your project goes here...
+[![atlas](https://user-images.githubusercontent.com/3605224/199301187-a9e38b3f-71a7-44be-94f4-db0d66143c53.png)](https://esmatlas.com)
+
+This repository contains code to submit protein sequences to the high performance
+computing platform O2 for inference on trained ESM-2 models.
+
 
 
 .. _pyscaffold-notes:
