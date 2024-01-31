@@ -4,12 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-esm = {file = ".", editable = true}
 pandas = "*"
 fastparquet = "*"
 pyarrow = "*"
 transformers = "*"
 evo-prot-grad = "*"
+esm = {file = ".", editable = true}
 
 [dev-packages]
 matplotlib = "*"
