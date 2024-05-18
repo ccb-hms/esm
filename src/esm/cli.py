@@ -3,6 +3,7 @@ import argparse
 import logging
 from pathlib import Path
 from esm.evoprotgrad import EvoProtGrad
+from esm.evoprotgrad import torch_device
 
 testsequence = 'MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN'
 
@@ -28,18 +29,20 @@ def main(args=None):
 
     else:
         log_file = os.path.join(output_directory, f'{args.app}.log')
-        time_format = '%Y-%m-%d %I:%M:%S'
-        log_format = '%(asctime)s-%(levelname)s-%(module)s-%(funcName)s-%(lineno)d-"%(message)s"'
+        dtfmt = '%y%m%d-%H:%M'
+        logfmt = '%(asctime)s-%(name)s-%(levelname)s-%(message)s'
         logging.basicConfig(filename=log_file,
                             filemode='w',
                             level=logging.INFO,
-                            format=log_format,
-                            datefmt=time_format)
+                            format=logfmt,
+                            datefmt=dtfmt)
         logger = logging.getLogger(name=__name__)
 
         if args.app == 'evolution':
             print(f'Single protein evolution on target protein:\n{args.sequence}')
             epg = EvoProtGrad()
+            device_dict = torch_device()
+            print(device_dict)
             output_df = epg.single_evolute(raw_protein_sequence=args.sequence)
             try:
                 output_df.to_csv(output_file, index=False)
