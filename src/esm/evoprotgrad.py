@@ -107,7 +107,7 @@ class EvoProtGrad:
     Example Usage:
         epg = EvoProtGrad()
         raw_sequence = 'MAARAAAVVLLLWTLPLALALALAAAAAAA'
-        result_df = epg.single_evolute(raw_protein_sequence=raw_sequence)
+        result_df = epg.single_evolute(raw_protein_sequence=raw_sequence)EvoP
     """
     def __init__(self, name='esm', checkpoint='default'):
         self.name = name
