@@ -31,6 +31,15 @@ esm_checkpoints = {
 
 
 def set_expert(name='esm', checkpoint='default', device=None, **kwargs):
+    """
+    Args:
+        name: (str) The name of the expert. Default is 'esm'.
+        checkpoint: (str) The name of the checkpoint. Default is 'default'.
+        device: (str) The device to run the expert on. Default is None.
+        **kwargs: Additional keyword arguments for the method.
+    Returns:
+        expert: The expert object that has been set.
+    """
     checkpoint = esm_checkpoints.get(checkpoint)
     expert = evo_prot_grad.get_expert(
         expert_name=name,
@@ -41,13 +50,86 @@ def set_expert(name='esm', checkpoint='default', device=None, **kwargs):
     return expert
 
 
+def torch_device():
+    """
+    Retrieves information about the current torch device.
+    This function checks if CUDA is available and if so, retrieves information
+    about the current CUDA device. If CUDA is not available, it retrieves information
+    about the CPU device.
+    Returns:
+        dict: A dictionary containing information about the torch device. The dictionary has
+        the following keys:
+
+            - 'device_id' (int or None): The ID of the current CUDA device. If CUDA is not available, this value is None.
+            - 'device' (torch.device): The torch device object representing the current device.
+            - 'device_name' (str): The name of the current device.
+            - 'cudnn_version' (str or None): The version of cuDNN library installed. If CUDA is not available, this value is None.
+            - 'torch_version' (str): The version of the torch library installed.
+    """
+    is_cuda = torch.cuda.is_available()
+    if is_cuda:
+        device_id = torch.cuda.current_device()
+        device_dict = {
+            'device_id': device_id,
+            'device': torch.device(f'cuda:{device_id}'),
+            'device_name': torch.cuda.get_device_name(device_id),
+            'cudnn_version': torch.backends.cudnn.version()
+        }
+    else:
+        device_dict = {
+            'device_id': None,
+            'device': torch.device('cpu'),
+            'device_name': 'cpu',
+            'cudnn_version': None
+        }
+    device_dict.update({'torch_version': torch.__version__})
+    return device_dict
+
+
 class EvoProtGrad:
+    """
+    Class EvoProtGrad
+    A class for evolutionary protein design using gradient-based methods.
+    Attributes:
+        name (str): The name of the expert model used for evolution (default: 'esm').
+        checkpoint (str): The checkpoint of the expert model used for evolution (default: 'default').
+        device_dict (dict): A dictionary containing the device information.
+        device (torch.device): The torch device on which the expert model is loaded.
+        expert (ExpertModel): An instance of the expert model used for evolution.
+    Methods:
+        __init__(self, name='esm', checkpoint='default')
+            Initializes an instance of EvoProtGrad.
+        single_evolute(self, raw_protein_sequence, **kwargs)
+            Generates variants for a given raw protein sequence and returns the information in a pandas DataFrame.
+        evolute(self, raw_protein_sequence)
+            Performs evolutionary protein design on a given raw protein sequence and returns the evolved variants
+            along with their corresponding scores.
+    Example Usage:
+        epg = EvoProtGrad()
+        raw_sequence = 'MAARAAAVVLLLWTLPLALALALAAAAAAA'
+        result_df = epg.single_evolute(raw_protein_sequence=raw_sequence)
+    """
     def __init__(self, name='esm', checkpoint='default'):
         self.name = name
-        self.device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
+        self.device_dict = torch_device()
+        self.device = self.device_dict.get('device')
         self.expert = set_expert(name=name, checkpoint=checkpoint, device=self.device)
 
     def single_evolute(self, raw_protein_sequence, **kwargs):
+        """
+        Args:
+            raw_protein_sequence: The raw protein sequence used for evolution.
+            **kwargs: Additional keyword arguments for the method.
+        Returns:
+            var_df (DataFrame): A pandas DataFrame containing information about the evolved variants.
+                The DataFrame includes the following columns:
+                - variant: The index of the variant.
+                - score: The score of the variant.
+                - pos: A list of positions where the evolved protein sequence differs from the raw sequence.
+                - source: A list of amino acids from the raw protein sequence at the differing positions.
+                - target: A list of amino acids from the evolved protein sequence at the differing positions.
+                - sequence: The evolved protein sequence.
+        """
         variants, scores = self.evolute(raw_protein_sequence=raw_protein_sequence)
         var_df_list = []
         for evolution, var_protein_sequence in enumerate(variants):
@@ -70,13 +152,15 @@ class EvoProtGrad:
 
     def evolute(self, raw_protein_sequence):
         """
-        Evolute method
-        This method performs directed evolution on a given protein sequence.
-        Parameters:
-        - raw_protein_sequence (str): The raw protein sequence on which the evolution process will be performed.
+        Args:
+            raw_protein_sequence: A string representing the raw protein sequence.
         Returns:
-        - variants (list): A list of evolved protein variants.
-        - scores (list): A list of scores corresponding to each evolved variant.
+            A tuple containing the evolved protein variants and their corresponding scores.
+        Example Usage:
+            raw_protein_sequence = 'MAARAAAVVLLLWTLPLALALALAAAAAAA'
+            variants, scores = evolute(raw_protein_sequence)
+            print(variants)  # ['MQARVWLLLLVAAAATPLALALALAAAAAA', 'MALAVWLLLLVAAAAAPLALALALAAAAAA']
+            print(scores)  # [0.4, 0.6]
         """
         fasta_format_sequence = f'>Input_Sequence\n{raw_protein_sequence}'
         with tempfile.NamedTemporaryFile(mode='w+t', delete=False) as temp_fasta_path:
