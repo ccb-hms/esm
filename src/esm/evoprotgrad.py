@@ -31,6 +31,23 @@ esm_checkpoints = {
 
 
 def set_expert(name='esm', checkpoint='default', device=None, cache_dir=None):
+    """
+    Parameters
+    ----------
+    name : str (default='esm')
+        The name of the expert.
+    checkpoint : str (default='default')
+        The checkpoint to load the expert from.
+    device : str or torch.device (default=None)
+        The device to run the expert on.
+    cache_dir : str (default=None)
+        The directory to cache the downloaded checkpoints.
+
+    Returns
+    -------
+    expert : EvoProtExpert
+        The initialized expert model.
+    """
     checkpoint = esm_checkpoints.get(checkpoint)
     expert = evo_prot_grad.get_expert(
         expert_name=name,
@@ -42,6 +59,18 @@ def set_expert(name='esm', checkpoint='default', device=None, cache_dir=None):
 
 
 def torch_device():
+    """
+    torch_device() -> dict
+    This method returns information about the current device, including device id, device name, CUDNN version, and Torch version.
+
+    Returns:
+        dict: A dictionary containing the following information about the current device:
+            - 'device_id': The ID of the current device. If the device is a CUDA device, this corresponds to the device index.
+            - 'device': The torch device object representing the current device.
+            - 'device_name': The name of the current device.
+            - 'cudnn_version': The version of CUDNN library if available, None otherwise.
+            - 'torch_version': The version of the Torch library.
+    """
     is_cuda = torch.cuda.is_available()
     if is_cuda:
         device_id = torch.cuda.current_device()
@@ -63,6 +92,24 @@ def torch_device():
 
 
 class EvoProtGrad:
+    """
+    A class representing EvoProtGrad, a protein evolution and gradient descent algorithm.
+
+    Attributes:
+        name (str): The name of the EvoProtGrad instance.
+        device (torch.device): The device on which the calculations are performed.
+        expert: The expert used for protein evolution.
+
+    Methods:
+        __init__(name='esm', device=None, expert=None, cache_dir=None):
+            Initializes a new instance of the EvoProtGrad class.
+
+        single_evolute(raw_protein_sequence, **kwargs):
+            Performs a single evolution step on the given protein sequence.
+
+        evolute(raw_protein_sequence):
+            Performs protein evolution on the given protein sequence.
+    """
     def __init__(self, name='esm', device=None, expert=None, cache_dir=None):
         self.name = name
         if device is None:
